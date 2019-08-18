@@ -1,0 +1,13 @@
+main: com.linmalu.servercontroller.Main
+name: LinmaluServerController
+version: 1.13.2.0
+author: 린마루(Linmalu)
+website: http://blog.linmalu.com/
+description: LinmaluServerController
+depend: [LinmaluLibrary]
+
+commands:
+    LinmaluServerController:
+        description: 서버 플러그인
+        aliases: [lsc, 서버]
+        usage: '명령어 : /<command>'
