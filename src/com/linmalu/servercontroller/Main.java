@@ -9,11 +9,19 @@ public final class Main extends LinmaluMain
 		return (Main)LinmaluMain.getInstance();
 	}
 
+	private MainConfig _mainConfig;
+
 	@Override
 	public void onEnable()
 	{
 		super.onEnable();
+		_mainConfig = new MainConfig();
 		new MainCommand(this);
 		new MainEvent(this);
+	}
+
+	public MainConfig GetMainConfig()
+	{
+		return _mainConfig;
 	}
 }
