@@ -1,10 +1,10 @@
 package com.linmalu.servercontroller;
 
 import com.linmalu.library.api.LinmaluEvent;
-import com.linmalu.library.api.LinmaluMain;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -16,16 +16,21 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 public class MainEvent extends LinmaluEvent
 {
-	private final MainConfig _config = Main.getInstance().GetMainConfig();
+	private final MainConfig _config;
 
-	public MainEvent(LinmaluMain main)
+	public MainEvent(Main main)
 	{
 		super(main);
+		_config = main.GetMainConfig();
 	}
 
 	@EventHandler
 	public void event(FoodLevelChangeEvent event)
 	{
+		if(event.getEntityType() != EntityType.PLAYER)
+		{
+			return;
+		}
 		if(_config.isFoodStop())
 		{
 			event.setCancelled(true);
@@ -43,7 +48,7 @@ public class MainEvent extends LinmaluEvent
 		if(_config.isBlockBreakStop())
 		{
 			event.setCancelled(true);
-			player.sendMessage(Main.getInstance().getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+			player.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
 		}
 	}
 
@@ -58,7 +63,7 @@ public class MainEvent extends LinmaluEvent
 		if(_config.isBlockPlaceStop())
 		{
 			event.setCancelled(true);
-			player.sendMessage(Main.getInstance().getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+			player.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
 		}
 	}
 
@@ -73,7 +78,7 @@ public class MainEvent extends LinmaluEvent
 		if(_config.isChattingStop())
 		{
 			event.setCancelled(true);
-			player.sendMessage(Main.getInstance().getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+			player.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
 		}
 	}
 
@@ -96,7 +101,7 @@ public class MainEvent extends LinmaluEvent
 			return;
 		}
 		event.setCancelled(true);
-		player.sendMessage(Main.getInstance().getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+		player.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
 	}
 
 	@EventHandler
@@ -115,7 +120,7 @@ public class MainEvent extends LinmaluEvent
 		if(_config.isAttackStop())
 		{
 			event.setCancelled(true);
-			entity1.sendMessage(Main.getInstance().getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+			entity1.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
 		}
 	}
 }
