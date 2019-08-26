@@ -8,6 +8,6 @@ depend: [LinmaluLibrary]
 
 commands:
     LinmaluServerController:
-        description: 서버 플러그인
+        description: 서버 관리 플러그인
         aliases: [lsc, 서버]
         usage: '명령어 : /<command>'
