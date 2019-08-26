@@ -36,6 +36,7 @@ public class MainCommand extends LinmaluCommand
 	private final String TAB_CHATTING_STOP = "채팅금지";
 	private final String TAB_MOVE_STOP = "이동금지";
 	private final String TAB_ATTACK_STOP = "공격금지";
+	private final String TAB_SMART_MOVING_STOP = "스마트무빙금지";
 	private final String TAB_INFO = "정보";
 
 	private final MainConfig _config;
@@ -72,6 +73,7 @@ public class MainCommand extends LinmaluCommand
 			tabList.add(TAB_CHATTING_STOP);
 			tabList.add(TAB_MOVE_STOP);
 			tabList.add(TAB_ATTACK_STOP);
+			tabList.add(TAB_SMART_MOVING_STOP);
 			tabList.add(TAB_INFO);
 			return tabList;
 		}
@@ -190,13 +192,13 @@ public class MainCommand extends LinmaluCommand
 			{
 				return true;
 			}
-			ItemStack item = ((Player)sender).getItemInHand();
+			ItemStack item = ((Player)sender).getItemInHand().clone();
 			if(item == null || item.getType() == Material.AIR)
 			{
 				sender.sendMessage(_main.getTitle() + ChatColor.YELLOW + "아이템이 없습니다.");
 				return true;
 			}
-			String msg = _main.getTitle() + ChatColor.AQUA + "[" + LinmaluItemStack.getName(item) + ChatColor.AQUA + "]" + ChatColor.GREEN + "아이템을 받았습니다.";
+			String msg = _main.getTitle() + ChatColor.AQUA + "[" + LinmaluItemStack.getName(item) + ChatColor.AQUA + "]" + ChatColor.GREEN + " 아이템을 받았습니다.";
 			for(Player player : LinmaluPlayer.getPlayers(sender, args[1]))
 			{
 				LinmaluPlayer.addItemStack(player, item);
@@ -318,12 +320,12 @@ public class MainCommand extends LinmaluCommand
 			if(_config.isFoodStop())
 			{
 				_config.setFoodStop(false);
-				Bukkit.broadcastMessage(_main.getTitle() + ChatColor.GOLD + TAB_BLOCK_BREAK_STOP + ChatColor.GREEN + " 기능이 취소되었습니다.");
+				Bukkit.broadcastMessage(_main.getTitle() + ChatColor.GOLD + TAB_FOOD_STOP + ChatColor.GREEN + " 기능이 취소되었습니다.");
 			}
 			else
 			{
 				_config.setFoodStop(true);
-				Bukkit.broadcastMessage(_main.getTitle() + ChatColor.GOLD + TAB_BLOCK_BREAK_STOP + ChatColor.GREEN + " 기능이 작동되었습니다.");
+				Bukkit.broadcastMessage(_main.getTitle() + ChatColor.GOLD + TAB_FOOD_STOP + ChatColor.GREEN + " 기능이 작동되었습니다.");
 			}
 			return true;
 		}
@@ -402,6 +404,42 @@ public class MainCommand extends LinmaluCommand
 			}
 			return true;
 		}
+		// 스마트무빙 금지
+		else if(args.length == 1 && args[0].equalsIgnoreCase(TAB_SMART_MOVING_STOP))
+		{
+			if(_config.isSmartMovingStop())
+			{
+				_config.setSmartMovingStop(false);
+				Bukkit.broadcastMessage(_main.getTitle() + ChatColor.GOLD + TAB_SMART_MOVING_STOP + ChatColor.GREEN + " 기능이 취소되었습니다.");
+			}
+			else
+			{
+				_config.setSmartMovingStop(true);
+				Bukkit.broadcastMessage(_main.getTitle() + ChatColor.GOLD + TAB_SMART_MOVING_STOP + ChatColor.GREEN + " 기능이 작동되었습니다.");
+				for(Player player : LinmaluPlayer.getOnlinePlayers())
+				{
+					if(player.isOp())
+					{
+						continue;
+					}
+					List<String> channels = LinmaluPlayer.getChannels(player);
+					if(channels == null)
+					{
+						player.kickPlayer(_main.getTitle() + "모드확인을 실패했습니다. 서버에 재접속이 필요합니다.");
+						continue;
+					}
+					for(String channel : channels)
+					{
+						if(channel.toLowerCase().contains(Main.SMART_MOVING_NAME))
+						{
+							player.kickPlayer(_main.getTitle() + Main.SMART_MOVING_MESSAGE);
+							break;
+						}
+					}
+				}
+			}
+			return true;
+		}
 		// 정보
 		else if(args.length == 1 && args[0].equalsIgnoreCase(TAB_INFO))
 		{
@@ -412,27 +450,29 @@ public class MainCommand extends LinmaluCommand
 			sender.sendMessage(ChatColor.GOLD + TAB_CHATTING_STOP + ChatColor.WHITE + " : " + (_config.isChattingStop() ? ChatColor.GREEN + "작동" : ChatColor.YELLOW + "취소"));
 			sender.sendMessage(ChatColor.GOLD + TAB_MOVE_STOP + ChatColor.WHITE + " : " + (_config.isMoveStop() ? ChatColor.GREEN + "작동" : ChatColor.YELLOW + "취소"));
 			sender.sendMessage(ChatColor.GOLD + TAB_ATTACK_STOP + ChatColor.WHITE + " : " + (_config.isAttackStop() ? ChatColor.GREEN + "작동" : ChatColor.YELLOW + "취소"));
+			sender.sendMessage(ChatColor.GOLD + TAB_SMART_MOVING_STOP + ChatColor.WHITE + " : " + (_config.isSmartMovingStop() ? ChatColor.GREEN + "작동" : ChatColor.YELLOW + "취소"));
 			return true;
 		}
 		sender.sendMessage(ChatColor.GREEN + " = = = = = [ Linmalu ServerController ] = = = = =");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_COMMAND, ChatColor.GOLD + "/" + label + " " + TAB_COMMAND + " <플레이어> <명령어> ..." + ChatColor.GRAY + " : 플레이어에게 OP권한으로 명령어를 대신 사용합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_CHATTING, ChatColor.GOLD + "/" + label + " " + TAB_CHATTING + " <플레이어> <채팅> ..." + ChatColor.GRAY + " : 플레이어에게 채팅을 대신 사용합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_INVENTORY, ChatColor.GOLD + "/" + label + " " + TAB_INVENTORY + " <플레이어>" + ChatColor.GRAY + " : 플레이어의 인벤을 엽니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_CHEST, ChatColor.GOLD + "/" + label + " " + TAB_CHEST + " <X> <Y> <Z>" + ChatColor.GRAY + " : 좌표에 있는 상자를 엽니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_ENDER_CHEST, ChatColor.GOLD + "/" + label + " " + TAB_ENDER_CHEST + " <플레이어>" + ChatColor.GRAY + " : 플레이어의 엔더상자를 엽니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_ITEM, ChatColor.GOLD + "/" + label + " " + TAB_ITEM + " <플레이어>" + ChatColor.GRAY + " : 아이템을 플레이어에게 줍니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_LEVEL, ChatColor.GOLD + "/" + label + " " + TAB_LEVEL + " <플레이어> <레벨>" + ChatColor.GRAY + " : 플레이어의 레벨을 설정합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_HEALTH, ChatColor.GOLD + "/" + label + " " + TAB_HEALTH + " <플레이어> <체력>" + ChatColor.GRAY + " : 플레이어의 체력을 설정합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_FOOD, ChatColor.GOLD + "/" + label + " " + TAB_FOOD + " <플레이어> <배고픔>" + ChatColor.GRAY + " : 플레이어의 배고픔을 설정합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_PUSH, ChatColor.GOLD + "/" + label + " " + TAB_PUSH + " <플레이어> <힘>" + ChatColor.GRAY + " : 플레이어를 자신의 보는 방향으로 밉니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_PUSH, ChatColor.GOLD + "/" + label + " " + TAB_PUSH + " <플레이어> <X> <Y> <Z>" + ChatColor.GRAY + " : 플레이어를 좌표방향으로 밉니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_FOOD_STOP, ChatColor.GOLD + "/" + label + " " + TAB_FOOD_STOP + ChatColor.GRAY + " : 배고픔을 멈춥니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_BLOCK_BREAK_STOP, ChatColor.GOLD + "/" + label + " " + TAB_BLOCK_BREAK_STOP + ChatColor.GRAY + " : 블럭파괴를 금지합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_BLOCK_PLACE_STOP, ChatColor.GOLD + "/" + label + " " + TAB_BLOCK_PLACE_STOP + ChatColor.GRAY + " : 블럭설치를 금지합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_CHATTING_STOP, ChatColor.GOLD + "/" + label + " " + TAB_CHATTING_STOP + ChatColor.GRAY + " : 채팅을 금지합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_MOVE_STOP, ChatColor.GOLD + "/" + label + " " + TAB_MOVE_STOP + ChatColor.GRAY + " : 이동을 금지합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_ATTACK_STOP, ChatColor.GOLD + "/" + label + " " + TAB_ATTACK_STOP + ChatColor.GRAY + " : 공격을 금지합니다.");
-		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_INFO, ChatColor.GOLD + "/" + label + " " + TAB_INFO + ChatColor.GRAY + " : 설정된 정보를 확인합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_COMMAND + " ", ChatColor.GOLD + "/" + label + " " + TAB_COMMAND + " <플레이어> <명령어> ..." + ChatColor.GRAY + " : 플레이어에게 OP권한으로 명령어를 대신 사용합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_CHATTING + " ", ChatColor.GOLD + "/" + label + " " + TAB_CHATTING + " <플레이어> <채팅> ..." + ChatColor.GRAY + " : 플레이어에게 채팅을 대신 사용합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_INVENTORY + " ", ChatColor.GOLD + "/" + label + " " + TAB_INVENTORY + " <플레이어>" + ChatColor.GRAY + " : 플레이어의 인벤을 엽니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_CHEST + " ", ChatColor.GOLD + "/" + label + " " + TAB_CHEST + " <X> <Y> <Z>" + ChatColor.GRAY + " : 좌표에 있는 상자를 엽니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_ENDER_CHEST + " ", ChatColor.GOLD + "/" + label + " " + TAB_ENDER_CHEST + " <플레이어>" + ChatColor.GRAY + " : 플레이어의 엔더상자를 엽니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_ITEM + " ", ChatColor.GOLD + "/" + label + " " + TAB_ITEM + " <플레이어>" + ChatColor.GRAY + " : 아이템을 플레이어에게 줍니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_LEVEL + " ", ChatColor.GOLD + "/" + label + " " + TAB_LEVEL + " <플레이어> <레벨>" + ChatColor.GRAY + " : 플레이어의 레벨을 설정합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_HEALTH + " ", ChatColor.GOLD + "/" + label + " " + TAB_HEALTH + " <플레이어> <체력>" + ChatColor.GRAY + " : 플레이어의 체력을 설정합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_FOOD + " ", ChatColor.GOLD + "/" + label + " " + TAB_FOOD + " <플레이어> <배고픔>" + ChatColor.GRAY + " : 플레이어의 배고픔을 설정합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_PUSH + " ", ChatColor.GOLD + "/" + label + " " + TAB_PUSH + " <플레이어> <힘>" + ChatColor.GRAY + " : 플레이어를 자신의 보는 방향으로 밉니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_PUSH + " ", ChatColor.GOLD + "/" + label + " " + TAB_PUSH + " <플레이어> <X> <Y> <Z>" + ChatColor.GRAY + " : 플레이어를 좌표방향으로 밉니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_FOOD_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_FOOD_STOP + ChatColor.GRAY + " : 배고픔을 멈춥니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_BLOCK_BREAK_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_BLOCK_BREAK_STOP + ChatColor.GRAY + " : 블럭파괴를 금지합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_BLOCK_PLACE_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_BLOCK_PLACE_STOP + ChatColor.GRAY + " : 블럭설치를 금지합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_CHATTING_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_CHATTING_STOP + ChatColor.GRAY + " : 채팅을 금지합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_MOVE_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_MOVE_STOP + ChatColor.GRAY + " : 이동을 금지합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_ATTACK_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_ATTACK_STOP + ChatColor.GRAY + " : 공격을 금지합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_SMART_MOVING_STOP + " ", ChatColor.GOLD + "/" + label + " " + TAB_SMART_MOVING_STOP + ChatColor.GRAY + " : 스마트무빙을 금지합니다.");
+		LinmaluTellraw.sendChat(sender, "/" + label + " " + TAB_INFO + " ", ChatColor.GOLD + "/" + label + " " + TAB_INFO + ChatColor.GRAY + " : 설정된 정보를 확인합니다.");
 		sender.sendMessage(ChatColor.YELLOW + "제작자 : " + ChatColor.AQUA + "린마루(Linmalu)" + ChatColor.WHITE + " - http://blog.linmalu.com");
 		return true;
 	}
