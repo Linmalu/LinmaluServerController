@@ -4,11 +4,6 @@ import com.linmalu.library.api.LinmaluMain;
 
 public final class Main extends LinmaluMain
 {
-	public static Main getInstance()
-	{
-		return (Main)LinmaluMain.getInstance();
-	}
-
 	private MainConfig _mainConfig;
 
 	@Override
