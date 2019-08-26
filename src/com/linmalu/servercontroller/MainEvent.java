@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRegisterChannelEvent;
 
 public class MainEvent extends LinmaluEvent
 {
@@ -100,7 +101,9 @@ public class MainEvent extends LinmaluEvent
 		{
 			return;
 		}
-		event.setCancelled(true);
+		toLocation.setX(fromLocation.getBlockX() + 0.5);
+		toLocation.setZ(fromLocation.getBlockZ() + 0.5);
+		player.teleport(toLocation);
 		player.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
 	}
 
@@ -113,14 +116,33 @@ public class MainEvent extends LinmaluEvent
 		{
 			return;
 		}
-		if(entity1.isOp())
+		Player player = (Player)entity1;
+		if(player.isOp())
 		{
 			return;
 		}
 		if(_config.isAttackStop())
 		{
 			event.setCancelled(true);
-			entity1.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+			player.sendMessage(_main.getTitle() + ChatColor.YELLOW + "금지된 행동입니다.");
+		}
+	}
+
+	@EventHandler
+	public void event(PlayerRegisterChannelEvent event)
+	{
+		Player player = event.getPlayer();
+		if(player.isOp())
+		{
+			return;
+		}
+		if(!_config.isSmartMovingStop())
+		{
+			return;
+		}
+		if(event.getChannel().toLowerCase().contains(Main.SMART_MOVING_NAME))
+		{
+			player.kickPlayer(_main.getTitle() + Main.SMART_MOVING_MESSAGE);
 		}
 	}
 }
