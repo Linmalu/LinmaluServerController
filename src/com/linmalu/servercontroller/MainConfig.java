@@ -13,6 +13,7 @@ public class MainConfig
 	private final String CONFIG_CHATTING_STOP = "ChattingStop";
 	private final String CONFIG_MOVE_STOP = "MoveStop";
 	private final String CONFIG_ATTACK_STOP = "AttackStop";
+	private final String CONFIG_SMART_MOVING_STOP = "SmartMovingStop";
 
 	public MainConfig()
 	{
@@ -22,6 +23,7 @@ public class MainConfig
 		setChattingStop(isChattingStop());
 		setMoveStop(isMoveStop());
 		setAttackStop(isAttackStop());
+		setSmartMovingStop(isSmartMovingStop());
 		_config.save();
 	}
 
@@ -83,5 +85,15 @@ public class MainConfig
 	public void setAttackStop(boolean attackStop)
 	{
 		_config.set(CONFIG_ATTACK_STOP, attackStop);
+	}
+
+	public boolean isSmartMovingStop()
+	{
+		return _config.getBoolean(CONFIG_SMART_MOVING_STOP, false);
+	}
+
+	public void setSmartMovingStop(boolean smartMovingStop)
+	{
+		_config.set(CONFIG_SMART_MOVING_STOP, smartMovingStop);
 	}
 }
